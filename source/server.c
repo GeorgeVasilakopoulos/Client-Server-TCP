@@ -7,7 +7,6 @@
 #include <netinet/in.h> 
 #include <stdlib.h>
 #include <unistd.h> 
-
 #include "queue.h"
 
 
@@ -53,7 +52,7 @@ void*workerFunction(){
 
 int main(int argc, char* argv[]){
 	if(argc < 6){
-		printf("Insufficient Arguments!\n");
+		printf("Insufficient number of arguments!\n");
 		return 0;
 	}
 	int portnum = atoi(argv[1]);
@@ -102,9 +101,6 @@ int main(int argc, char* argv[]){
 		QueueInsert(&clientQueue,&newSocket);
 		pthread_mutex_unlock(&mutex);
 		pthread_cond_signal(&nonEmptyCondition);
-
-
-
 	}
 
 
