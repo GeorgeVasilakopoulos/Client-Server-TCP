@@ -19,14 +19,13 @@ pthread_cond_t nonEmptyCondition = PTHREAD_COND_INITIALIZER;
 Queue clientQueue;
 
 pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
-
-
+votersRecord voteRecordStructure;
 
 
 
 
 void*workerFunction(){
-
+	sigignore(SIGTSTP);
 	while(1){
 		pthread_mutex_lock(&mutex);
 		while(QueueSize(&clientQueue) == 0)
@@ -56,17 +55,10 @@ void*workerFunction(){
 		}
 		party[i]='\0';
 		write(newSocket,"DONE\n", strlen("DONE\n"));
-
-		pthread_mutex_lock(&recordMutex);
-
-
-
-
-		pthread_mutex_unlock(&recordMutex);
-		
-
-		//Serve Client
 		close(newSocket);
+		pthread_mutex_lock(&recordMutex);
+		InsertRecord(&voteRecordStructure,name,party);
+		pthread_mutex_unlock(&recordMutex);
 	}
 
 
@@ -83,6 +75,30 @@ void*workerFunction(){
 
 
 
+pthread_t* workerThread;
+int numWorkerthreads;
+
+void signalHandler(int sigval){
+	if(sigval == SIGTSTP){
+		pthread_mutex_lock(&recordMutex);
+		saveToPollLog(&voteRecordStructure);
+		saveToPollStats(&voteRecordStructure);
+			
+		for(int i=0;i<numWorkerthreads;i++){
+			pthread_kill(workerThread[i],SIGTERM);
+		}
+		pthread_mutex_unlock(&recordMutex);
+		DestructRecord(&voteRecordStructure);
+		exit(0);
+	}
+}
+
+
+
+
+
+
+
 
 
 int main(int argc, char* argv[]){
@@ -91,7 +107,7 @@ int main(int argc, char* argv[]){
 		return 0;
 	}
 	int portnum = atoi(argv[1]);
-	int numWorkerthreads = atoi(argv[2]);
+	numWorkerthreads = atoi(argv[2]);
 	int bufferSize = atoi(argv[3]);
 	char* poll_log = argv[4];
 	char* poll_stats = argv[5];
@@ -100,13 +116,17 @@ int main(int argc, char* argv[]){
 	QueueInitialize(&clientQueue,sizeof(int));
 
 
+	//Initialize record structure
+	InitializeRecord(&voteRecordStructure,poll_log,poll_stats);
+
+
 	//Create Worker Threads
-	pthread_t* workerThread = malloc(sizeof(pthread_t)*numWorkerthreads);
+	workerThread = malloc(sizeof(pthread_t)*numWorkerthreads);
 	for(int i=0; i < numWorkerthreads; i++){
 		pthread_create(workerThread+i,NULL,&workerFunction,NULL);
 	}
 
-
+	signal(SIGTSTP,&signalHandler);
 
 	//Initialize Server Variables
 	struct sockaddr_in server;
