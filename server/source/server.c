@@ -43,12 +43,19 @@ void*workerFunction(){
 		char party[1000];
 		int i=0;
 		while(read(newSocket,name+i,1)>0){
-			if(name[i++]=='\n')break;
+			if(name[i]=='\n')break;
+			i++;
 		}
 		name[i]='\0';
-		printf("i is %s\n",name);
 		
-
+		write(newSocket,"SEND VOTE PLEASE\n", strlen("SEND VOTE PLEASE\n"));
+		i=0;
+		while(read(newSocket,party+i,1)>0){
+			if(party[i]=='\n')break;
+			i++;
+		}
+		party[i]='\0';
+		write(newSocket,"DONE\n", strlen("DONE\n"));
 
 		pthread_mutex_lock(&recordMutex);
 
