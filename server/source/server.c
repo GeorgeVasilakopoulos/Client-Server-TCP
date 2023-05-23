@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -25,7 +26,12 @@ votersRecord voteRecordStructure;
 
 
 void*workerFunction(){
-	sigignore(SIGTSTP);
+	
+	sigset_t signal_set;
+	sigemptyset(&signal_set);
+	sigaddset(&signal_set,SIGINT);
+	pthread_sigmask(SIG_BLOCK,&signal_set,NULL);
+
 	while(1){
 		pthread_mutex_lock(&mutex);
 		while(QueueSize(&clientQueue) == 0)
@@ -79,7 +85,7 @@ pthread_t* workerThread;
 int numWorkerthreads;
 
 void signalHandler(int sigval){
-	if(sigval == SIGTSTP){
+	if(sigval == SIGINT){
 		pthread_mutex_lock(&recordMutex);
 		saveToPollLog(&voteRecordStructure);
 		saveToPollStats(&voteRecordStructure);
@@ -126,7 +132,7 @@ int main(int argc, char* argv[]){
 		pthread_create(workerThread+i,NULL,&workerFunction,NULL);
 	}
 
-	signal(SIGTSTP,&signalHandler);
+	signal(SIGINT,&signalHandler);
 
 	//Initialize Server Variables
 	struct sockaddr_in server;
