@@ -8,12 +8,18 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include "queue.h"
+#include "hashtable.h"
+#include "votersRecord.h"
 
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t nonFullCondition = PTHREAD_COND_INITIALIZER;
 pthread_cond_t nonEmptyCondition = PTHREAD_COND_INITIALIZER;
 Queue clientQueue;
+
+pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 
 
@@ -27,8 +33,30 @@ void*workerFunction(){
 			pthread_cond_wait(&nonEmptyCondition,&mutex);
 		int newSocket = *(int*)QueueFront(&clientQueue);
 		QueuePop(&clientQueue);
-		pthread_mutex_unlock(&mutex);
 		pthread_cond_signal(&nonFullCondition);
+		pthread_mutex_unlock(&mutex);
+
+
+
+		write(newSocket,"SEND NAME PLEASE\n", strlen("SEND NAME PLEASE\n"));
+		char name[1000];
+		char party[1000];
+		int i=0;
+		while(read(newSocket,name+i,1)>0){
+			if(name[i++]=='\n')break;
+		}
+		name[i]='\0';
+		printf("i is %s\n",name);
+		
+
+
+		pthread_mutex_lock(&recordMutex);
+
+
+
+
+		pthread_mutex_unlock(&recordMutex);
+		
 
 		//Serve Client
 		close(newSocket);
@@ -99,8 +127,8 @@ int main(int argc, char* argv[]){
 		while(QueueSize(&clientQueue) == bufferSize)
 			pthread_cond_wait(&nonFullCondition,&mutex);
 		QueueInsert(&clientQueue,&newSocket);
-		pthread_mutex_unlock(&mutex);
 		pthread_cond_signal(&nonEmptyCondition);
+		pthread_mutex_unlock(&mutex);
 	}
 
 

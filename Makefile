@@ -4,8 +4,8 @@ EXEC = poller
 
 
 DIRS = . structures
-SOURCE_DIRS = $(foreach D, $(DIRS),$(wildcard source/$(D)))
-INCLUDE_DIRS = $(foreach D, $(DIRS),$(wildcard include/$(D)))
+SOURCE_DIRS = $(foreach D, $(DIRS),$(wildcard server/source/$(D)))
+INCLUDE_DIRS = $(foreach D, $(DIRS),$(wildcard server/include/$(D)))
 
 DEPFLAGS = -MP -MD
 CFLAGS = $(foreach D, $(INCLUDE_DIRS), -I$(D)) $(DEPFLAGS)
