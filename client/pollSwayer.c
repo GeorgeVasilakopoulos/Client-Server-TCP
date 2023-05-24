@@ -56,7 +56,7 @@ void* swayerFunction(){
         inputFilePointer = NULL;
     }
 
-    pthread_mutex_unlock(&mutex);
+    
 
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
@@ -68,6 +68,8 @@ void* swayerFunction(){
         printf("Socket error\n");
     	exit(0);
     }
+
+    pthread_mutex_unlock(&mutex);
 
     //Find server address
     if((rem = gethostbyname(serverName)) == NULL){

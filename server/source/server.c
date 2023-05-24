@@ -65,7 +65,7 @@ void*workerFunction(){
 
 		char doneMessage[100]="VOTE FOR PARTY ";
 		strcat(doneMessage,party);
-		strcat(doneMessage," RECORDED");
+		strcat(doneMessage," RECORDED\n");
 
 
 		write(newSocket,doneMessage, strlen(doneMessage));
@@ -91,6 +91,7 @@ void*workerFunction(){
 
 pthread_t* workerThread;
 int numWorkerthreads;
+int mainSocket;
 
 void signalHandler(int sigval){
 	if(sigval == SIGINT){
@@ -103,6 +104,7 @@ void signalHandler(int sigval){
 		}
 		pthread_mutex_unlock(&recordMutex);
 		DestructRecord(&voteRecordStructure);
+		close(mainSocket);
 		exit(0);
 	}
 }
@@ -154,7 +156,7 @@ int main(int argc, char* argv[]){
 	struct sockaddr* clientptr = (struct sockaddr*)&client;
 
 
-	int mainSocket = socket(AF_INET,SOCK_STREAM,0);
+	mainSocket = socket(AF_INET,SOCK_STREAM,0);
 
 	bind(mainSocket,serverptr,sizeof(server));
 
