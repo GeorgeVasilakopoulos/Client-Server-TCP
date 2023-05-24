@@ -108,7 +108,7 @@ int RemoveRecord(votersRecord* record, const char*voterName){
 	searchEntry.voterName = (char*)voterName;
 
 
-	const voteEntry* entry = hashFind(&(record->votersTable),(char*)voterName,&voteEntry_comparator);
+	const voteEntry* entry = hashFind(&(record->votersTable),(void*)&searchEntry,&voteEntry_comparator);
 	if(!entry)return 1;
 	free(entry->voterName);
 	free(entry->party);

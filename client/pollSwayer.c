@@ -11,30 +11,30 @@
 
 char* serverName;
 int portNum;
-char* inputFile;
+FILE* inputFilePointer;
 
-void tostring(char str[], int num)
-{
-    int i, rem, len = 0, n;
- 
-    n = num;
-    while (n != 0)
-    {
-        len++;
-        n /= 10;
-    }
-    for (i = 0; i < len; i++)
-    {
-        rem = num % 10;
-        num = num / 10;
-        str[len - (i + 1)] = rem + '0';
-    }
-    str[len] = '\0';
-}
+pthread_mutex_t mutex= PTHREAD_MUTEX_INITIALIZER;
 
 
 
 void* swayerFunction(){
+
+    pthread_mutex_lock(&mutex);
+    if(inputFilePointer == NULL){
+        pthread_mutex_unlock(&mutex);
+        pthread_exit(NULL);
+    }
+    char voterNameBuf[100]="";
+    char party[100]="";    
+
+    if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
+        //HMM
+    }
+    if(fscanf(inputFilePointer,"%s",party)==EOF){
+        inputFilePointer = NULL;
+    }
+
+    pthread_mutex_unlock(&mutex);
 
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
@@ -63,16 +63,10 @@ void* swayerFunction(){
     	exit(0);
     }
 
-    char buf[100] = "Hey im ";
-    tostring(buf+strlen(buf),pthread_self());
-    for(int i=0; buf[i]!='\0'; i++){
-    	if(write(sock,buf+i,1)<0){
-    		printf("Writing error\n");
-    		exit(0);
-    	}
-    }
+    
+
+
     close(sock);
-    pthread_exit(NULL);
 }
 
 
@@ -85,7 +79,9 @@ int main(int argc, char*argv[]){
 
 	serverName = argv[1];
 	portNum = atoi(argv[2]);
-	inputFile = argv[3];	
+	char* inputFile = argv[3];	
+    inputFilePointer = fopen(inputFile,"r");
+
 
 	pthread_t swayer[10];
 	for(int i=0;i<10;i++){

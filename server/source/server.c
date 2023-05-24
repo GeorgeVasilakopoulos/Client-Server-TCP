@@ -42,8 +42,10 @@ void*workerFunction(){
 		pthread_mutex_unlock(&mutex);
 
 
+		char* sendNamePlease = "SEND NAME PLEASE\n"; 
+		char* sendVotePlease = "SEND VOTE PLEASE\n";
 
-		write(newSocket,"SEND NAME PLEASE\n", strlen("SEND NAME PLEASE\n"));
+		write(newSocket,sendNamePlease, strlen(sendNamePlease));
 		char name[1000];
 		char party[1000];
 		int i=0;
@@ -53,14 +55,20 @@ void*workerFunction(){
 		}
 		name[i]='\0';
 		
-		write(newSocket,"SEND VOTE PLEASE\n", strlen("SEND VOTE PLEASE\n"));
+		write(newSocket,sendVotePlease, strlen(sendVotePlease));
 		i=0;
 		while(read(newSocket,party+i,1)>0){
 			if(party[i]=='\n')break;
 			i++;
 		}
 		party[i]='\0';
-		write(newSocket,"DONE\n", strlen("DONE\n"));
+
+		char doneMessage[100]="VOTE FOR PARTY ";
+		strcat(doneMessage,party);
+		strcat(doneMessage," RECORDED");
+
+
+		write(newSocket,doneMessage, strlen(doneMessage));
 		close(newSocket);
 		pthread_mutex_lock(&recordMutex);
 		InsertRecord(&voteRecordStructure,name,party);
