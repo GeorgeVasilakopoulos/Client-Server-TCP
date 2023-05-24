@@ -28,7 +28,10 @@ void* swayerFunction(){
     char party[100]="";    
 
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
-        //HMM
+        //Error
+        inputFilePointer = NULL;
+        pthread_mutex_unlock(&mutex);
+        pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
         inputFilePointer = NULL;
@@ -63,9 +66,10 @@ void* swayerFunction(){
     	exit(0);
     }
 
-    
-
-
+    write(sock,voterNameBuf,strlen(voterNameBuf));
+    write(sock,"\n",1);
+    write(sock,party,strlen(party));
+    write(sock,"\n",1);
     close(sock);
 }
 
