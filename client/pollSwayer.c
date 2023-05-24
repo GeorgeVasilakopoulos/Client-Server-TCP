@@ -8,12 +8,31 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include <netdb.h>
+#define NUM_THREADS 1
+
+
 
 char* serverName;
 int portNum;
 FILE* inputFilePointer;
 
+
+
+
 pthread_mutex_t mutex= PTHREAD_MUTEX_INITIALIZER;
+
+
+void getResponse(int sock, char* writeBuf){
+    char responseBuf[100]="";
+    int i=0;
+    while(read(sock,responseBuf+i,1)>0){
+        if(responseBuf[i]=='\n' || responseBuf[i]=='\0')break;
+        i++;
+    }
+    responseBuf[i]='\0';
+    if(writeBuf==NULL)return;
+    strcpy(writeBuf,responseBuf);
+}
 
 
 
@@ -66,10 +85,13 @@ void* swayerFunction(){
     	exit(0);
     }
 
+    getResponse(sock,NULL);
     write(sock,voterNameBuf,strlen(voterNameBuf));
     write(sock,"\n",1);
+    getResponse(sock,NULL);
     write(sock,party,strlen(party));
     write(sock,"\n",1);
+    getResponse(sock,NULL);
     close(sock);
 }
 
@@ -87,12 +109,12 @@ int main(int argc, char*argv[]){
     inputFilePointer = fopen(inputFile,"r");
 
 
-	pthread_t swayer[10];
-	for(int i=0;i<10;i++){
+	pthread_t swayer[NUM_THREADS];
+	for(int i=0;i<NUM_THREADS;i++){
 		pthread_create(swayer+i,NULL,&swayerFunction,NULL);
 	}
 
-	for(int i=0;i<10;i++){
+	for(int i=0;i<NUM_THREADS;i++){
 		pthread_join(swayer[i],NULL);
 	}
 
