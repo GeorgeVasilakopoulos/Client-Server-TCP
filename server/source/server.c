@@ -18,6 +18,8 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t nonFullCondition = PTHREAD_COND_INITIALIZER;
 pthread_cond_t nonEmptyCondition = PTHREAD_COND_INITIALIZER;
 Queue clientQueue;
+int stopFlag;
+
 
 pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
 votersRecord voteRecordStructure;
@@ -32,10 +34,17 @@ void*workerFunction(){
 	sigaddset(&signal_set,SIGINT);
 	pthread_sigmask(SIG_BLOCK,&signal_set,NULL);
 
+
 	while(1){
 		pthread_mutex_lock(&mutex);
-		while(QueueSize(&clientQueue) == 0)
+		
+		while(QueueSize(&clientQueue) == 0){
 			pthread_cond_wait(&nonEmptyCondition,&mutex);
+			if(stopFlag){
+				pthread_cond_signal(&nonEmptyCondition);
+				pthread_exit(NULL);
+			}
+		}
 		int newSocket = *(int*)QueueFront(&clientQueue);
 		QueuePop(&clientQueue);
 		pthread_cond_signal(&nonFullCondition);
@@ -74,19 +83,14 @@ void*workerFunction(){
 		InsertRecord(&voteRecordStructure,name,party);
 		pthread_mutex_unlock(&recordMutex);
 	}
-
-
-
-
-
-
-
-
-
-	pthread_exit(NULL);
 }
 
-
+void setSockAsReuseable(int sock){
+	const int enable = 1;
+	if(setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&enable,sizeof(int))<0){
+		//error
+	}
+}
 
 
 pthread_t* workerThread;
@@ -95,17 +99,23 @@ int mainSocket;
 
 void signalHandler(int sigval){
 	if(sigval == SIGINT){
+		pthread_mutex_lock(&mutex);
+		stopFlag = 1;
+		pthread_cond_signal(&nonEmptyCondition);
+		pthread_mutex_unlock(&mutex);
+
+		for(int i=0;i<numWorkerthreads;i++){
+			pthread_join(workerThread[i],NULL);
+		}
+
 		pthread_mutex_lock(&recordMutex);
 		saveToPollLog(&voteRecordStructure);
 		saveToPollStats(&voteRecordStructure);
-			
-		for(int i=0;i<numWorkerthreads;i++){
-			pthread_kill(workerThread[i],SIGTERM);
-		}
-		pthread_mutex_unlock(&recordMutex);
 		DestructRecord(&voteRecordStructure);
+		pthread_mutex_unlock(&recordMutex);
+
+
 		close(mainSocket);
-		exit(0);
 	}
 }
 
@@ -130,7 +140,7 @@ int main(int argc, char* argv[]){
 
 	//Initialize Queue
 	QueueInitialize(&clientQueue,sizeof(int));
-
+	stopFlag = 0;
 
 	//Initialize record structure
 	InitializeRecord(&voteRecordStructure,poll_log,poll_stats);
@@ -157,6 +167,8 @@ int main(int argc, char* argv[]){
 
 
 	mainSocket = socket(AF_INET,SOCK_STREAM,0);
+	setSockAsReuseable(mainSocket);
+
 
 	bind(mainSocket,serverptr,sizeof(server));
 
@@ -165,7 +177,7 @@ int main(int argc, char* argv[]){
 	while(1){
 		socklen_t clientlen = sizeof(client);
 		int newSocket = accept(mainSocket,clientptr,&clientlen);
-
+		setSockAsReuseable(newSocket);
 		pthread_mutex_lock(&mutex);
 		while(QueueSize(&clientQueue) == bufferSize)
 			pthread_cond_wait(&nonFullCondition,&mutex);
