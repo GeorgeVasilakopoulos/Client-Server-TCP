@@ -42,6 +42,7 @@ void*workerFunction(){
 			pthread_cond_wait(&nonEmptyCondition,&mutex);
 			if(stopFlag){
 				pthread_cond_signal(&nonEmptyCondition);
+				pthread_mutex_unlock(&mutex);
 				pthread_exit(NULL);
 			}
 		}
@@ -107,15 +108,14 @@ void signalHandler(int sigval){
 		for(int i=0;i<numWorkerthreads;i++){
 			pthread_join(workerThread[i],NULL);
 		}
-
+		printf("Joined\n");
 		pthread_mutex_lock(&recordMutex);
 		saveToPollLog(&voteRecordStructure);
 		saveToPollStats(&voteRecordStructure);
 		DestructRecord(&voteRecordStructure);
 		pthread_mutex_unlock(&recordMutex);
-
-
 		close(mainSocket);
+		exit(0);
 	}
 }
 
