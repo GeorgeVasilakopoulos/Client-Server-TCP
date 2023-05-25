@@ -1,5 +1,4 @@
 CC = gcc
-EXEC = poller
 
 
 
@@ -15,11 +14,12 @@ OBJECTS = $(patsubst %.c,%.o,$(CFILES))
 DEPFILES = $(patsubst %.c,%.d,$(CFILES))
 
 
+all: poller pollSwayer
 
+pollSwayer: 
+	$(CC) client/pollSwayer.c -lpthread -o pollSwayer 
 
-all: $(EXEC)
-
-$(EXEC): $(OBJECTS)
+poller: $(OBJECTS)
 	$(CC) -o $@ $^ -lpthread
 
 
@@ -27,7 +27,7 @@ $(EXEC): $(OBJECTS)
 	$(CC) -g -Wall $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm $(EXEC) $(OBJECTS) $(DEPFILES)
+	rm poller pollSwayer $(OBJECTS) $(DEPFILES) server/*.txt client/*.txt
 
 -include $(DEPFILES)
 
