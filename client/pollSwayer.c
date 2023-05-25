@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include <netdb.h>
-#define NUM_THREADS 1
 
 
 
@@ -20,6 +19,19 @@ FILE* inputFilePointer;
 
 
 pthread_mutex_t mutex= PTHREAD_MUTEX_INITIALIZER;
+
+
+int countLinesInFile(const char* filename){
+    FILE* fileptr = fopen(filename,"r");
+    int lineCounter = 0;
+    for(char c=getc(fileptr);c!=EOF;c=getc(fileptr)){
+        if(c=='\n')lineCounter++;
+    }
+    fclose(fileptr);
+    return lineCounter;
+}
+
+
 
 
 void getResponse(int sock, char* writeBuf){
@@ -107,20 +119,22 @@ int main(int argc, char*argv[]){
 
 	serverName = argv[1];
 	portNum = atoi(argv[2]);
-	char* inputFile = argv[3];	
+	char* inputFile = argv[3];
+
+    int numThreads = countLinesInFile(inputFile);
+
     inputFilePointer = fopen(inputFile,"r");
 
 
-	pthread_t swayer[NUM_THREADS];
-	for(int i=0;i<NUM_THREADS;i++){
+	pthread_t* swayer = malloc(sizeof(pthread_t)*numThreads);
+	for(int i=0;i<numThreads;i++){
 		pthread_create(swayer+i,NULL,&swayerFunction,NULL);
 	}
 
-	for(int i=0;i<NUM_THREADS;i++){
+	for(int i=0;i<numThreads;i++){
 		pthread_join(swayer[i],NULL);
 	}
-
-
+    free(swayer);
 
 
 	return 0;
