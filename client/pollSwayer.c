@@ -10,6 +10,13 @@
 #include <netdb.h>
 
 
+#define ERROR_CHECK(arg)                    \
+{                                           \
+    if(arg){                                \
+        printf("Error in %s\n",#arg);       \
+    }                                       \
+}                                           
+
 
 char* serverName;
 int portNum;
@@ -50,9 +57,9 @@ void getResponse(int sock, char* writeBuf){
 
 void* swayerFunction(){
 
-    pthread_mutex_lock(&mutex);
+    ERROR_CHECK(pthread_mutex_lock(&mutex));
     if(inputFilePointer == NULL){
-        pthread_mutex_unlock(&mutex);
+        ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     char voterNameBuf[100]="";
@@ -61,12 +68,12 @@ void* swayerFunction(){
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
         //Error
         inputFilePointer = NULL;
-        pthread_mutex_unlock(&mutex);
+        ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
         inputFilePointer = NULL;
-        pthread_mutex_unlock(&mutex);
+        ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
@@ -86,7 +93,7 @@ void* swayerFunction(){
     	exit(0);
     }
 
-    pthread_mutex_unlock(&mutex);
+    ERROR_CHECK(pthread_mutex_unlock(&mutex));
 
     //Find server address
     if((rem = gethostbyname(serverName)) == NULL){
@@ -99,19 +106,17 @@ void* swayerFunction(){
     memcpy(&server.sin_addr,rem->h_addr,rem->h_length);
     server.sin_port = htons(portNum);
 
-    if(connect(sock,serverptr,sizeof(server))<0){
-    	printf("ERROR\n");
-    	exit(0);
-    }
+    ERROR_CHECK(connect(sock,serverptr,sizeof(server)))
 
     getResponse(sock,NULL);
-    write(sock,voterNameBuf,strlen(voterNameBuf));
-    write(sock,"\n",1);
+    ERROR_CHECK(write(sock,voterNameBuf,strlen(voterNameBuf)));
+    ERROR_CHECK(write(sock,"\n",1));
     getResponse(sock,NULL);
-    write(sock,party,strlen(party));
-    write(sock,"\n",1);
+    ERROR_CHECK(write(sock,party,strlen(party)));
+    ERROR_CHECK(write(sock,"\n",1));
     getResponse(sock,NULL);
-    close(sock);
+    ERROR_CHECK(close(sock));
+    pthread_exit(NULL);
 }
 
 
