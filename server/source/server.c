@@ -25,6 +25,12 @@ pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
 votersRecord voteRecordStructure;
 
 
+#define ERROR_CHECK(arg)                    \
+{                                           \
+    if(arg<0){                                \
+        printf("Error in %s\n",#arg);       \
+    }                                       \
+}                                           
 
 
 void*workerFunction(){
@@ -177,6 +183,7 @@ int main(int argc, char* argv[]){
 	while(1){
 		socklen_t clientlen = sizeof(client);
 		int newSocket = accept(mainSocket,clientptr,&clientlen);
+		ERROR_CHECK(newSocket);
 		setSockAsReuseable(newSocket);
 		pthread_mutex_lock(&mutex);
 		while(QueueSize(&clientQueue) == bufferSize)

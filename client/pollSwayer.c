@@ -12,7 +12,7 @@
 
 #define ERROR_CHECK(arg)                    \
 {                                           \
-    if(arg){                                \
+    if(arg<0){                                \
         printf("Error in %s\n",#arg);       \
     }                                       \
 }                                           
