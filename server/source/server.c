@@ -66,7 +66,7 @@ void*workerFunction(){
 		char party[1000];
 		int i=0;
 		while(read(newSocket,name+i,1)>0){
-			if(name[i]=='\0')break;
+			if(name[i]=='\n')break;
 			i++;
 		}
 		name[i]='\0';
@@ -74,7 +74,7 @@ void*workerFunction(){
 		write(newSocket,sendVotePlease, strlen(sendVotePlease));
 		i=0;
 		while(read(newSocket,party+i,1)>0){
-			if(party[i]=='\0')break;
+			if(party[i]=='\n')break;
 			i++;
 		}
 		party[i]='\0';
