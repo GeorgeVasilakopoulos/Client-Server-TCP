@@ -27,7 +27,7 @@ votersRecord voteRecordStructure;
 
 #define ERROR_CHECK(arg)                    \
 {                                           \
-    if(arg<0){                                \
+    if(arg<0){                              \
         printf("Error in %s\n",#arg);       \
     }                                       \
 }                                           
