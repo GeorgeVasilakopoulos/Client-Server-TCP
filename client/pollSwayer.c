@@ -67,17 +67,20 @@ void* swayerFunction(){
 
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
         //Error
+        printf("Wait, no!\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
+        printf("Wait, no!\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
         inputFilePointer = NULL;
+        printf("Wargning guys\n");
     }
 
     
