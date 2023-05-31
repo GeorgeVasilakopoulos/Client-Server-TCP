@@ -67,6 +67,8 @@ void* swayerFunction(){
 
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
         inputFilePointer = NULL;
+        ERROR_CHECK(pthread_mutex_unlock(&mutex));
+        pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
         inputFilePointer = NULL;
