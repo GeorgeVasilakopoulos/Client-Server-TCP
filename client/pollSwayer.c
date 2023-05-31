@@ -12,7 +12,7 @@
 
 #define ERROR_CHECK(arg)                    \
 {                                           \
-    if(arg<0){                                \
+    if(arg<0){                              \
         printf("Error in %s\n",#arg);       \
     }                                       \
 }                                           
@@ -45,7 +45,7 @@ void getResponse(int sock, char* writeBuf){
     char responseBuf[100]="";
     int i=0;
     while(read(sock,responseBuf+i,1)>0){
-        if(responseBuf[i]=='\n' || responseBuf[i]=='\0')break;
+        if(responseBuf[i]=='\0')break;
         i++;
     }
     responseBuf[i]='\0';

@@ -61,20 +61,20 @@ void*workerFunction(){
 		char* sendNamePlease = "SEND NAME PLEASE\n"; 
 		char* sendVotePlease = "SEND VOTE PLEASE\n";
 
-		write(newSocket,sendNamePlease, strlen(sendNamePlease));
+		write(newSocket,sendNamePlease, strlen(sendNamePlease)+1);
 		char name[1000];
 		char party[1000];
 		int i=0;
 		while(read(newSocket,name+i,1)>0){
-			if(name[i]=='\n')break;
+			if(name[i]=='\0')break;
 			i++;
 		}
 		name[i]='\0';
 		
-		write(newSocket,sendVotePlease, strlen(sendVotePlease));
+		write(newSocket,sendVotePlease, strlen(sendVotePlease)+1);
 		i=0;
 		while(read(newSocket,party+i,1)>0){
-			if(party[i]=='\n')break;
+			if(party[i]=='\0')break;
 			i++;
 		}
 		party[i]='\0';
@@ -84,7 +84,7 @@ void*workerFunction(){
 		strcat(doneMessage," RECORDED\n");
 
 
-		write(newSocket,doneMessage, strlen(doneMessage));
+		write(newSocket,doneMessage, strlen(doneMessage)+1);
 		close(newSocket);
 		pthread_mutex_lock(&recordMutex);
 		InsertRecord(&voteRecordStructure,name,party);
