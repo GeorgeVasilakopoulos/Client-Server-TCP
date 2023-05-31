@@ -107,12 +107,13 @@ void* swayerFunction(){
 
     ERROR_CHECK(connect(sock,serverptr,sizeof(server)))
 
+    strcat(voterNameBuf,"\n");
+    strcat(party,"\n");
+
     getResponse(sock,NULL);
     ERROR_CHECK(write(sock,voterNameBuf,strlen(voterNameBuf)));
-    ERROR_CHECK(write(sock,"\n",1));
     getResponse(sock,NULL);
     ERROR_CHECK(write(sock,party,strlen(party)));
-    ERROR_CHECK(write(sock,"\n",1));
     getResponse(sock,NULL);
     ERROR_CHECK(close(sock));
     pthread_exit(NULL);

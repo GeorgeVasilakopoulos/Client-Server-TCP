@@ -61,7 +61,7 @@ void*workerFunction(){
 		char* sendNamePlease = "SEND NAME PLEASE\n"; 
 		char* sendVotePlease = "SEND VOTE PLEASE\n";
 
-		write(newSocket,sendNamePlease, strlen(sendNamePlease)+1);
+		write(newSocket,sendNamePlease, strlen(sendNamePlease));
 		char name[1000];
 		char party[1000];
 		int i=0;
@@ -71,7 +71,7 @@ void*workerFunction(){
 		}
 		name[i]='\0';
 		
-		write(newSocket,sendVotePlease, strlen(sendVotePlease)+1);
+		write(newSocket,sendVotePlease, strlen(sendVotePlease));
 		i=0;
 		while(read(newSocket,party+i,1)>0){
 			if(party[i]=='\0')break;
@@ -84,9 +84,10 @@ void*workerFunction(){
 		strcat(doneMessage," RECORDED\n");
 
 
-		write(newSocket,doneMessage, strlen(doneMessage)+1);
+		write(newSocket,doneMessage, strlen(doneMessage));
 		close(newSocket);
 		pthread_mutex_lock(&recordMutex);
+		printf("Inserting %s and %s\n",name,party);
 		InsertRecord(&voteRecordStructure,name,party);
 		pthread_mutex_unlock(&recordMutex);
 	}
@@ -94,9 +95,7 @@ void*workerFunction(){
 
 void setSockAsReuseable(int sock){
 	const int enable = 1;
-	if(setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&enable,sizeof(int))<0){
-		//error
-	}
+	ERROR_CHECK(setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&enable,sizeof(int)));
 }
 
 
