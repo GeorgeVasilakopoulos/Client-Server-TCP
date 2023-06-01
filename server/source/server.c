@@ -18,7 +18,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t nonFullCondition = PTHREAD_COND_INITIALIZER;
 pthread_cond_t nonEmptyCondition = PTHREAD_COND_INITIALIZER;
 Queue clientQueue;
-int stopFlag;
+int stopFlag=0;
 
 
 pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -87,7 +87,6 @@ void*workerFunction(){
 		write(newSocket,doneMessage, strlen(doneMessage));
 		close(newSocket);
 		pthread_mutex_lock(&recordMutex);
-		printf("Inserting %s and %s\n",name,party);
 		InsertRecord(&voteRecordStructure,name,party);
 		pthread_mutex_unlock(&recordMutex);
 	}
@@ -177,7 +176,7 @@ int main(int argc, char* argv[]){
 
 	bind(mainSocket,serverptr,sizeof(server));
 
-	listen(mainSocket,5);
+	listen(mainSocket,128);
 
 	while(1){
 		socklen_t clientlen = sizeof(client);

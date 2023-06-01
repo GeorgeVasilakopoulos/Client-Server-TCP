@@ -87,6 +87,7 @@ void* swayerFunction(){
     }
 
     
+    ERROR_CHECK(pthread_mutex_unlock(&mutex));
 
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
@@ -100,7 +101,6 @@ void* swayerFunction(){
     }
     setSockAsReuseable(sock);
 
-    ERROR_CHECK(pthread_mutex_unlock(&mutex));
 
     //Find server address
     if((rem = gethostbyname(serverName)) == NULL){
@@ -114,7 +114,6 @@ void* swayerFunction(){
     server.sin_port = htons(portNum);
 
     ERROR_CHECK(connect(sock,serverptr,sizeof(server)))
-
     strcat(voterNameBuf,"\n");
     strcat(party,"\n");
 
