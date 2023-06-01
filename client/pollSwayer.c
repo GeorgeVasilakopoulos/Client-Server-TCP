@@ -53,6 +53,11 @@ void getResponse(int sock, char* writeBuf){
     strcpy(writeBuf,responseBuf);
 }
 
+void setSockAsReuseable(int sock){
+    const int enable = 1;
+    ERROR_CHECK(setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&enable,sizeof(int)));
+}
+
 
 
 void* swayerFunction(){
@@ -93,6 +98,7 @@ void* swayerFunction(){
         printf("Socket error\n");
     	exit(0);
     }
+    setSockAsReuseable(sock);
 
     ERROR_CHECK(pthread_mutex_unlock(&mutex));
 
