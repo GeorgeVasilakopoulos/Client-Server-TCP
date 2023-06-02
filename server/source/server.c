@@ -119,7 +119,6 @@ void*workerFunction(){
 		
 		char doneMessage[100];
 			
-		printf("vote %s %s\n",name,party);
 
 
 		//If person has already voted, the new vote will not be included in the record structure

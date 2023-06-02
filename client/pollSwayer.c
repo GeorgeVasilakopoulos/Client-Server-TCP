@@ -9,7 +9,6 @@
 #include <unistd.h> 
 #include <netdb.h>
 
-
 #define ERROR_CHECK(arg)                    \
 {                                           \
     if((arg)<0){                            \
@@ -71,6 +70,8 @@ void setSockAsReuseable(int sock){
 void* swayerFunction(){
 
     ERROR_CHECK(pthread_mutex_lock(&mutex));
+    
+    //If inputFilePointer is NULL, all of the lines have been consumed
     if(inputFilePointer == NULL){
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
@@ -78,9 +79,10 @@ void* swayerFunction(){
     char voterNameBuf[100]="";
     char party[100]="";    
 
+    
+    //If any of the next fscanf's return EOF, there exists an error in the input file.
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
         fclose(inputFilePointer);
-        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
@@ -88,14 +90,12 @@ void* swayerFunction(){
     strcat(voterNameBuf," ");
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
         fclose(inputFilePointer);
-        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
         fclose(inputFilePointer);
-        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
@@ -104,6 +104,8 @@ void* swayerFunction(){
     
     ERROR_CHECK(pthread_mutex_unlock(&mutex));
 
+
+    //Initialize Server Variables
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
 	struct hostent *rem;
@@ -160,7 +162,6 @@ int main(int argc, char*argv[]){
 		pthread_create(swayer+i,NULL,&swayerFunction,NULL);
 	}
 
-    printf("Created threads %d\n",numThreads);
 	for(int i=0;i<numThreads;i++){
 		pthread_join(swayer[i],NULL);
 	}
