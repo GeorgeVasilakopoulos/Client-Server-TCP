@@ -16,7 +16,7 @@ DEPFILES = $(patsubst %.c,%.d,$(CFILES))
 
 all: poller pollSwayer
 
-pollSwayer: 
+pollSwayer: client/pollSwayer.c 
 	$(CC) client/pollSwayer.c -lpthread -o pollSwayer 
 
 poller: $(OBJECTS)
@@ -27,7 +27,7 @@ poller: $(OBJECTS)
 	$(CC) -g -Wall $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm poller pollSwayer $(OBJECTS) $(DEPFILES) server/*.txt client/*.txt
+	rm poller pollSwayer $(OBJECTS) $(DEPFILES) *.txt
 
 -include $(DEPFILES)
 
