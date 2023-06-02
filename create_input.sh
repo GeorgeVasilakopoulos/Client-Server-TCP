@@ -28,7 +28,7 @@ random_name(){
 
 print_lines(){
 	for (( i = 0; i < numLines; i++ )); do
-		echo `random_name` ${parties[`expr $RANDOM % ${#parties[@]}`]}	
+		echo `random_name` `random_name` ${parties[`expr $RANDOM % ${#parties[@]}`]}	
 	done
 }
 
