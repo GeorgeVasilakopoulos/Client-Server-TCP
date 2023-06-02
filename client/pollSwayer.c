@@ -12,7 +12,7 @@
 
 #define ERROR_CHECK(arg)                    \
 {                                           \
-    if(arg<0){                              \
+    if((arg)<0){                            \
         printf("Error in %s\n",#arg);       \
     }                                       \
 }                                           
@@ -95,10 +95,7 @@ void* swayerFunction(){
 	int sock;
 
 	//Create Socket
-    if((sock = socket(AF_INET,SOCK_STREAM,0)) < 0){
-        printf("Socket error\n");
-    	exit(0);
-    }
+    ERROR_CHECK(sock = socket(AF_INET,SOCK_STREAM,0))
     setSockAsReuseable(sock);
 
 

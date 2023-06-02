@@ -2,7 +2,7 @@ CC = gcc
 
 
 
-DIRS = . structures
+DIRS = . structures votersRecord
 SOURCE_DIRS = $(foreach D, $(DIRS),$(wildcard server/source/$(D)))
 INCLUDE_DIRS = $(foreach D, $(DIRS),$(wildcard server/include/$(D)))
 

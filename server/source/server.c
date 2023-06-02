@@ -27,8 +27,9 @@ votersRecord voteRecordStructure;
 
 #define ERROR_CHECK(arg)                    \
 {                                           \
-    if(arg<0){                              \
+    if((arg)<0){                            \
         printf("Error in %s\n",#arg);       \
+    	exit(0);							\
     }                                       \
 }                                           
 
@@ -79,16 +80,23 @@ void*workerFunction(){
 		}
 		party[i]='\0';
 
-		char doneMessage[100]="VOTE FOR PARTY ";
-		strcat(doneMessage,party);
-		strcat(doneMessage," RECORDED\n");
 
 
+		pthread_mutex_lock(&recordMutex);
+		int alreadyVoted = InsertVote(&voteRecordStructure,name,party);
+		pthread_mutex_unlock(&recordMutex);
+		
+		char doneMessage[100];
+		if(alreadyVoted){
+			strcpy(doneMessage,"ALREADY VOTED\n");
+		}
+		else{
+			strcpy(doneMessage,"VOTE FOR PARTY ");
+			strcat(doneMessage,party);
+			strcat(doneMessage," RECORDED\n");
+		}
 		write(newSocket,doneMessage, strlen(doneMessage));
 		close(newSocket);
-		pthread_mutex_lock(&recordMutex);
-		InsertRecord(&voteRecordStructure,name,party);
-		pthread_mutex_unlock(&recordMutex);
 	}
 }
 
@@ -112,7 +120,6 @@ void signalHandler(int sigval){
 		for(int i=0;i<numWorkerthreads;i++){
 			pthread_join(workerThread[i],NULL);
 		}
-		printf("Joined\n");
 		pthread_mutex_lock(&recordMutex);
 		saveToPollLog(&voteRecordStructure);
 		saveToPollStats(&voteRecordStructure);

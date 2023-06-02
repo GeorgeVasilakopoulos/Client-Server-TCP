@@ -15,7 +15,9 @@ void hashInit(Hashtable* table, size_t sizeOfItem, int (*hashFunction)(const voi
 	memset(table->bucket,0,sizeof(struct tableEntry*)*BUCKETNUMBER);
 }
 
-
+int hashSize(Hashtable* table){
+	return table->itemsCount;
+}
 
 void hashInsert(Hashtable* table, void* data){
 	table->itemsCount++;
@@ -45,7 +47,7 @@ const void* hashFind(Hashtable* table, void* data, int (*compare)(const void*, c
 
 //Remove element from hash table
 //Argument 'compare' is a comparator function between items
-void hashRemove(Hashtable* table, void* data, int (*compare)(const void*, const void*)){
+void hashRemove(Hashtable* table, void* data, int (*compare)(const void*, const void*),void (*destructor)(void* data)){
 	int bucketID = table->hashFunction(data) % BUCKETNUMBER;
 	struct tableEntry* entry = table->bucket[bucketID];
 	if(entry==NULL)return;
