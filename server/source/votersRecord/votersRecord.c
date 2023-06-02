@@ -81,6 +81,7 @@ int loadRecordFromFile(votersRecord* record, const char* filename){
 		if(fscanf(fileptr,"%s",partyBuf) == EOF)break;
 		InsertVote(record,voterNameBuf,partyBuf);
 	}
+	fclose(fileptr);
 	return 0;
 }
 

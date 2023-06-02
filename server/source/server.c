@@ -17,10 +17,15 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t nonFullCondition = PTHREAD_COND_INITIALIZER;
 pthread_cond_t nonEmptyCondition = PTHREAD_COND_INITIALIZER;
-Queue clientQueue;
+
+//Use of a FIFO queue structure instead of a buffer...
+Queue clientQueue;	
+
+//Will be set to 1 when SIGINT signal is received
 int stopFlag=0;
 
 
+//Mutex to protect the structure that stores the votes
 pthread_mutex_t recordMutex = PTHREAD_MUTEX_INITIALIZER;
 votersRecord voteRecordStructure;
 
@@ -33,9 +38,32 @@ votersRecord voteRecordStructure;
     }                                       \
 }                                           
 
+/*
+	Read response from socket until a newline is found.
+	
+	If writeBuf is not NULL, write response to writeBuf
+
+	Same as client
+*/
+
+void getResponse(int sock, char* writeBuf){
+    char responseBuf[100]="";
+    int i=0;
+    while(read(sock,responseBuf+i,1)>0){
+        if(responseBuf[i]=='\n')break;
+        i++;
+    }
+    responseBuf[i]='\0';
+    if(writeBuf==NULL)return;
+    strcpy(writeBuf,responseBuf);
+}
+
+
 
 void*workerFunction(){
 	
+
+	//Child threads will ignore the SIGINT signal
 	sigset_t signal_set;
 	sigemptyset(&signal_set);
 	sigaddset(&signal_set,SIGINT);
@@ -44,15 +72,22 @@ void*workerFunction(){
 
 	while(1){
 		pthread_mutex_lock(&mutex);
-		
-		while(QueueSize(&clientQueue) == 0){
-			pthread_cond_wait(&nonEmptyCondition,&mutex);
+
+		//If there are no pending requests or stopFlag is set
+		while(stopFlag || QueueSize(&clientQueue) == 0){
 			if(stopFlag){
+
+				//Unlock the mutex and exit
 				pthread_cond_signal(&nonEmptyCondition);
 				pthread_mutex_unlock(&mutex);
 				pthread_exit(NULL);
 			}
+
+			//Wait until queue is non empty
+			pthread_cond_wait(&nonEmptyCondition,&mutex);
 		}
+
+		//Get newSocket value and pop the front of the queue
 		int newSocket = *(int*)QueueFront(&clientQueue);
 		QueuePop(&clientQueue);
 		pthread_cond_signal(&nonFullCondition);
@@ -62,31 +97,32 @@ void*workerFunction(){
 		char* sendNamePlease = "SEND NAME PLEASE\n"; 
 		char* sendVotePlease = "SEND VOTE PLEASE\n";
 
+		//Send "SEND NAME PLEASE"
 		write(newSocket,sendNamePlease, strlen(sendNamePlease));
+		
+
 		char name[1000];
 		char party[1000];
-		int i=0;
-		while(read(newSocket,name+i,1)>0){
-			if(name[i]=='\n')break;
-			i++;
-		}
-		name[i]='\0';
 		
+
+		getResponse(newSocket,name);
+
+		//Send "SEND VOTE PLEASE"
 		write(newSocket,sendVotePlease, strlen(sendVotePlease));
-		i=0;
-		while(read(newSocket,party+i,1)>0){
-			if(party[i]=='\n')break;
-			i++;
-		}
-		party[i]='\0';
 
+		getResponse(newSocket,party);
 
-
+		//Request access to the record structure
 		pthread_mutex_lock(&recordMutex);
 		int alreadyVoted = InsertVote(&voteRecordStructure,name,party);
 		pthread_mutex_unlock(&recordMutex);
 		
 		char doneMessage[100];
+			
+		printf("vote %s %s\n",name,party);
+
+
+		//If person has already voted, the new vote will not be included in the record structure
 		if(alreadyVoted){
 			strcpy(doneMessage,"ALREADY VOTED\n");
 		}
@@ -114,17 +150,35 @@ void signalHandler(int sigval){
 	if(sigval == SIGINT){
 		pthread_mutex_lock(&mutex);
 		stopFlag = 1;
-		pthread_cond_signal(&nonEmptyCondition);
+
+		//Wake up all waiting threads in order to terminate
+		pthread_cond_broadcast(&nonEmptyCondition);
 		pthread_mutex_unlock(&mutex);
 
+
+		//Wait for the child threads to terminate
 		for(int i=0;i<numWorkerthreads;i++){
-			pthread_join(workerThread[i],NULL);
+			ERROR_CHECK(pthread_join(workerThread[i],NULL));
 		}
-		pthread_mutex_lock(&recordMutex);
+
+		//Deallocate threads
+		free(workerThread);
+		
+
+		//No need to lock any mutex since all child threads have been terminated
 		saveToPollLog(&voteRecordStructure);
 		saveToPollStats(&voteRecordStructure);
 		DestructRecord(&voteRecordStructure);
-		pthread_mutex_unlock(&recordMutex);
+		
+
+
+		//If the queue was not empty when the interrupt occured, close the sockets of the queue
+		while(QueueSize(&clientQueue)){
+			ERROR_CHECK(close(*(int*)QueueFront(&clientQueue)));
+			QueuePop(&clientQueue);
+		}
+		QueueDestruct(&clientQueue);
+
 		close(mainSocket);
 		exit(0);
 	}
@@ -160,7 +214,7 @@ int main(int argc, char* argv[]){
 	//Create Worker Threads
 	workerThread = malloc(sizeof(pthread_t)*numWorkerthreads);
 	for(int i=0; i < numWorkerthreads; i++){
-		pthread_create(workerThread+i,NULL,&workerFunction,NULL);
+		ERROR_CHECK(pthread_create(workerThread+i,NULL,&workerFunction,NULL));
 	}
 
 	signal(SIGINT,&signalHandler);
@@ -183,17 +237,23 @@ int main(int argc, char* argv[]){
 
 	bind(mainSocket,serverptr,sizeof(server));
 
-	listen(mainSocket,128);
+
+	//If requests are too many to be stored in the buffer, an error occurs.
+	listen(mainSocket,4096);
 
 	while(1){
 		socklen_t clientlen = sizeof(client);
 		int newSocket = accept(mainSocket,clientptr,&clientlen);
 		ERROR_CHECK(newSocket);
 		setSockAsReuseable(newSocket);
+		
+		//Lock mutex to access FIFO queue structure
 		pthread_mutex_lock(&mutex);
 		while(QueueSize(&clientQueue) == bufferSize)
 			pthread_cond_wait(&nonFullCondition,&mutex);
 		QueueInsert(&clientQueue,&newSocket);
+		
+		//Signal that the queue is not empty
 		pthread_cond_signal(&nonEmptyCondition);
 		pthread_mutex_unlock(&mutex);
 	}

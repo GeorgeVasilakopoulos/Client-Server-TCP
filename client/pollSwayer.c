@@ -41,6 +41,14 @@ int countLinesInFile(const char* filename){
 
 
 
+/*
+    Read response from socket until a newline is found.
+    
+    If writeBuf is not NULL, write response to writeBuf
+
+    Same as server
+*/
+
 void getResponse(int sock, char* writeBuf){
     char responseBuf[100]="";
     int i=0;
@@ -71,16 +79,23 @@ void* swayerFunction(){
     char party[100]="";    
 
     if(fscanf(inputFilePointer,"%s",voterNameBuf)==EOF){
+        fclose(inputFilePointer);
+        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
+    strcat(voterNameBuf," ");
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
+        fclose(inputFilePointer);
+        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
+        fclose(inputFilePointer);
+        printf("Set to NULL\n");
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
         pthread_exit(NULL);
@@ -145,9 +160,11 @@ int main(int argc, char*argv[]){
 		pthread_create(swayer+i,NULL,&swayerFunction,NULL);
 	}
 
+    printf("Created threads %d\n",numThreads);
 	for(int i=0;i<numThreads;i++){
 		pthread_join(swayer[i],NULL);
 	}
+    if(inputFilePointer)fclose(inputFilePointer);
     free(swayer);
 
 
