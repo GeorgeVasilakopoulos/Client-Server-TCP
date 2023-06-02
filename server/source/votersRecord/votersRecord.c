@@ -120,7 +120,14 @@ static void mergeSortStatEntries(int l, int r, statsEntry* array){
 	int i=l;
 	int j=mid+1;
 	int itemsCount = 0;
-	while(i <= mid && j <= r)temparray[itemsCount++] = (array[i].votesCount > array[j].votesCount) ? array[i++]:array[j++];
+	
+	//Sort primarily according to votesCount and secondarily according to party
+	while(i <= mid && j <= r){
+		if(array[i].votesCount != array[j].votesCount)
+			temparray[itemsCount++] = (array[i].votesCount > array[j].votesCount) ? array[i++]:array[j++];
+		else
+			temparray[itemsCount++] = (strcmp(array[i].party,array[j].party) > 0) ? array[i++]:array[j++];
+	}
 	while(i<=mid)temparray[itemsCount++] = array[i++];
 	while(j<=r)temparray[itemsCount++] = array[j++];
 	for(int i=0;i<itemsCount;i++){
