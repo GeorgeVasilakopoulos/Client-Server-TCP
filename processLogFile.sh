@@ -17,7 +17,12 @@ if [[ ! -e $pollLogFile ]]; then
 	exit
 fi
 
-IFS=$'\n' readarray -t parties <<< `awk '!voted[$1]++' $pollLogFile | cut -f2 --delim=' ' | sort | uniq -c`
+if [ ! -r $filename ]; then
+	echo Permission to read $filename denied
+	exit
+fi
+
+IFS=$'\n' readarray -t parties <<< `awk '!voted[$1 $2]++' $pollLogFile | cut -f3 --delim=' ' | sort | uniq -c`
 
 
 echo_output(){
@@ -32,4 +37,5 @@ echo_output(){
 	done
 }
 
-echo_output > pollerResultsFile
+# sort primarily according to votes count and secondarily in decreasing alphabetical order
+echo_output | sort -nr -k2,2 -k1 > pollerResultsFile

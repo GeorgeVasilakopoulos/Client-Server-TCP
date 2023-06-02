@@ -11,10 +11,15 @@ fi
 filename=$1
 numLines=$2
 
+if [[ ! -e $filename ]]; then
+	echo $filename does not exist
+	exit
+fi
+
 
 contents=`cat $filename`
-read -r -a parties <<< "$contents"
-
+IFS=$'\n' 
+readarray -t parties <<< "$contents"
 
 random_name(){
 	local name_size=`expr $RANDOM % 10 + 3`
