@@ -131,7 +131,7 @@ void*workerFunction(){
 			strcat(doneMessage," RECORDED\n");
 		}
 		write(newSocket,doneMessage, strlen(doneMessage));
-		close(newSocket);
+		ERROR_CHECK(close(newSocket));
 	}
 }
 
@@ -178,7 +178,7 @@ void signalHandler(int sigval){
 		}
 		QueueDestruct(&clientQueue);
 
-		close(mainSocket);
+		ERROR_CHECK(close(mainSocket));
 		exit(0);
 	}
 }
@@ -230,15 +230,15 @@ int main(int argc, char* argv[]){
 	struct sockaddr* clientptr = (struct sockaddr*)&client;
 
 
-	mainSocket = socket(AF_INET,SOCK_STREAM,0);
+	ERROR_CHECK(mainSocket = socket(AF_INET,SOCK_STREAM,0));
 	setSockAsReuseable(mainSocket);
 
 
-	bind(mainSocket,serverptr,sizeof(server));
+	ERROR_CHECK(bind(mainSocket,serverptr,sizeof(server)));
 
 
 	//If requests are too many to be stored in the buffer, an error occurs.
-	listen(mainSocket,4096);
+	ERROR_CHECK(listen(mainSocket,4096));
 
 	while(1){
 		socklen_t clientlen = sizeof(client);

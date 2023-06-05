@@ -13,6 +13,7 @@
 {                                           \
     if((arg)<0){                            \
         printf("Error in %s\n",#arg);       \
+        exit(0);                            \
     }                                       \
 }                                           
 
@@ -29,6 +30,10 @@ pthread_mutex_t mutex= PTHREAD_MUTEX_INITIALIZER;
 
 int countLinesInFile(const char* filename){
     FILE* fileptr = fopen(filename,"r");
+    if(!fileptr){
+        printf("Error in opening file %s\n",filename);
+        exit(0);
+    }
     int lineCounter = 0;
     for(char c=getc(fileptr);c!=EOF;c=getc(fileptr)){
         if(c=='\n')lineCounter++;
@@ -155,7 +160,10 @@ int main(int argc, char*argv[]){
     int numThreads = countLinesInFile(inputFile);
 
     inputFilePointer = fopen(inputFile,"r");
-
+    if(!inputFilePointer){
+        printf("Error in opening file %s\n",inputFile);
+        exit(0);
+    }
 
 	pthread_t* swayer = malloc(sizeof(pthread_t)*numThreads);
 	for(int i=0;i<numThreads;i++){
