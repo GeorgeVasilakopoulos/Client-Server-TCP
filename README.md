@@ -16,7 +16,7 @@ Georgios Alexandros Vasilakopoulos
 
 
 
-## ***SERVER***
+## ***poller***
 
 ### *Master Thread*
 
@@ -79,8 +79,36 @@ After step 5, a worker thread can safely start serving the client:
 - SEND VOTE PLEASE
 - VOTE FOR PARTY \<party\> RECORDED / ALREADY VOTED
 
-
-
-
-
 ### *Management of votes through ```votersRecord```*
+
+- The votersRecord module introduces a few simple methods that provide convenient access to the votes record.
+
+- The votersRecord *structure* is mainly consisted of a hashtable (aka map). During the insertion of a vote, a mapping is created that correlates the voter name and the party that they voted for. Through ```findPartyOfVoter```, one can query the hashtable structure and determine the party of a certain voter. One may also remove a vote from the file, through ```RemoveVote``` (even though this functionality is not utilized)
+
+- The module also provides a method that prints the voter logs into the given file. This works by opening a file pointer and 'visiting' all of the mappings with a certain function that prints the mapping onto the file that is pointed by the global file pointer ```saveVoteFile```.
+
+- Similarly, the vote stats are printed into the file. The process that is followed is the following:  
+	1. Create a new hashtable that maps parties to an integer number, representing the number of votes received.
+	2. Visit all of the vote mappings stored in the record and, for each one, increment the vote count of the corresponding party in the new hashtable.
+	3. Insert the mappings of the new hashtable (party-votesCount) into a buffer and sort them based on the number of votes received.
+	4. Print the voting stats into the given file in a decreasing order of votes.
+
+
+
+
+## ***pollSwayer***
+
+The initial pollSwayer thread opens the given input file in read mode and initializes the global ```inputFilePointer```, through which the worker threads will read the votes.
+
+Once created by the main thread, each worker thread:
+
+- Reads a line from the file, by accessing ```inputFilePointer```. The pointer itself is protected by a mutex, in order to prevent corruption by simultaneous access.
+
+- Initializes the server variables and attempts to connect to the server.
+
+- If the connection is successful, each worker thread waits for the initial message "SEND NAME PLEASE" and then proceeds to send the name of the voter and the party. 
+
+- Between each sent message, the thread awaits for the response of the server. If that were not the case, then the client would close the connection before the server could send the confirmation message, and that would cause a broken pipe error.
+
+
+

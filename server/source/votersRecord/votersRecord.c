@@ -103,12 +103,6 @@ int saveToPollLog(votersRecord* record){
 
 
 
-static void incrementVote(void* data){
-	statsEntry* entry = (statsEntry*)data;
-	entry->votesCount++;
-}
-
-
 
 //Sort statEntries with indeces l to r (inclusive) using mergesort
 static void mergeSortStatEntries(int l, int r, statsEntry* array){

@@ -53,5 +53,9 @@ void writeStatsToBuffer(void* data){
 }
 
 
+void incrementVote(void* data){
+	statsEntry* entry = (statsEntry*)data;
+	entry->votesCount++;
+}
 
 
