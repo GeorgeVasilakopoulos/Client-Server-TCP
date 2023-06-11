@@ -11,9 +11,10 @@
 extern FILE* saveVoteFile;
 extern statsEntry* writePtr;
 
-void InitializeRecord(votersRecord* record, const char* pollLogName, const char* logStatsName){
+void InitializeRecord(votersRecord* record, const char* pollLogName, const char* logStatsName, int realTimeSaving){
 	strcpy(record->pollLogName,pollLogName ? pollLogName : "");
 	strcpy(record->logStatsName,logStatsName ? logStatsName : "");
+	record->realTimeSaving = realTimeSaving;
 	hashInit(&(record->votersTable), sizeof(voteEntry),&voteEntry_hashFunction);
 }
 
@@ -46,6 +47,13 @@ int InsertVote(votersRecord* record, const char*voterName, const char* party){
 	
 
 	hashInsert(&(record->votersTable),&newEntry);
+	
+	if(record->realTimeSaving){
+		FILE *fileptr = fopen(record->pollLogName,"a+");
+		fprintf(fileptr, "%s %s\n", voterName,party);
+		fclose(fileptr);
+	}
+
 	return 0;
 }
 

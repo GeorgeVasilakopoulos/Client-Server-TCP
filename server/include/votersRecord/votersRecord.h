@@ -3,12 +3,13 @@
 typedef struct{
 	Hashtable votersTable;
 	char pollLogName[20];
+	int realTimeSaving;
 	char logStatsName[20];
 }votersRecord;
 
 
 
-void InitializeRecord(votersRecord* record, const char* pollLogName, const char* logStatsName);
+void InitializeRecord(votersRecord* record, const char* pollLogName, const char* logStatsName, int realTimeSaving);
 const char* FindPartyOfVoter(votersRecord* record, const char*voterName);
 int InsertVote(votersRecord* record, const char*voterName, const char* party);
 int RemoveVote(votersRecord* record, const char*voterName);

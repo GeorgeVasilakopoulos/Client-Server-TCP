@@ -164,8 +164,9 @@ void signalHandler(int sigval){
 		free(workerThread);
 		
 
-		//No need to lock any mutex since all child threads have been terminated
-		saveToPollLog(&voteRecordStructure);
+		//No need to lock any mutex. All child threads have been terminated
+		
+		// saveToPollLog(&voteRecordStructure);		//No need to do this, because we have enabled realTimeSaving
 		saveToPollStats(&voteRecordStructure);
 		DestructRecord(&voteRecordStructure);
 		
@@ -207,7 +208,7 @@ int main(int argc, char* argv[]){
 	stopFlag = 0;
 
 	//Initialize record structure
-	InitializeRecord(&voteRecordStructure,poll_log,poll_stats);
+	InitializeRecord(&voteRecordStructure,poll_log,poll_stats,1);	//Saving stats in real time
 
 
 	//Create Worker Threads
