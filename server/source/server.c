@@ -78,7 +78,7 @@ void*workerFunction(){
 			if(stopFlag){
 
 				//Unlock the mutex and exit
-				pthread_cond_signal(&nonEmptyCondition);
+				pthread_cond_broadcast(&nonEmptyCondition);
 				pthread_mutex_unlock(&mutex);
 				pthread_exit(NULL);
 			}
@@ -180,6 +180,11 @@ void signalHandler(int sigval){
 		QueueDestruct(&clientQueue);
 
 		ERROR_CHECK(close(mainSocket));
+
+
+		pthread_cond_destroy(&nonEmptyCondition);
+		pthread_cond_destroy(&nonFullCondition);
+		pthread_mutex_destroy(&mutex);
 		exit(0);
 	}
 }
