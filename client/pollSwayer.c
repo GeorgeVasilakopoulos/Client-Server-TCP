@@ -79,7 +79,7 @@ void* swayerFunction(){
     //If inputFilePointer is NULL, all of the lines have been consumed
     if(inputFilePointer == NULL){
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
-        pthread_exit(NULL);
+        return NULL;
     }
     char voterNameBuf[100]="";
     char party[100]="";    
@@ -90,20 +90,20 @@ void* swayerFunction(){
         fclose(inputFilePointer);
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
-        pthread_exit(NULL);
+        return NULL;
     }
     strcat(voterNameBuf," ");
     if(fscanf(inputFilePointer,"%s",voterNameBuf+strlen(voterNameBuf))==EOF){
         fclose(inputFilePointer);
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
-        pthread_exit(NULL);
+        return NULL;
     }
     if(fscanf(inputFilePointer,"%s",party)==EOF){
         fclose(inputFilePointer);
         inputFilePointer = NULL;
         ERROR_CHECK(pthread_mutex_unlock(&mutex));
-        pthread_exit(NULL);
+        return NULL;
     }
 
     
@@ -142,7 +142,7 @@ void* swayerFunction(){
     ERROR_CHECK(write(sock,party,strlen(party)));
     getResponse(sock,NULL);
     ERROR_CHECK(close(sock));
-    pthread_exit(NULL);
+    return NULL;
 }
 
 

@@ -80,7 +80,7 @@ void*workerFunction(){
 				//Unlock the mutex and exit
 				pthread_cond_broadcast(&nonEmptyCondition);
 				pthread_mutex_unlock(&mutex);
-				pthread_exit(NULL);
+				return NULL;
 			}
 
 			//Wait until queue is non empty
