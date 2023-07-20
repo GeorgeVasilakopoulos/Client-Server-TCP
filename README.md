@@ -1,7 +1,6 @@
-# Systems Programming Assignment 2
-Georgios Alexandros Vasilakopoulos
+# Client-Server Model through TCP
 
-1115202000018
+Assignment for class ```K24 Systems Programming```
 
 ### Compilation: ```make```
 
@@ -16,7 +15,7 @@ Georgios Alexandros Vasilakopoulos
 
 
 
-## ***poller***
+## ***poller server***
 
 ### *Master Thread*
 
@@ -96,7 +95,7 @@ After step 5, a worker thread can safely start serving the client:
 
 
 
-## ***pollSwayer***
+## ***pollSwayer client***
 
 The initial pollSwayer thread opens the given input file in read mode and initializes the global ```inputFilePointer```, through which the worker threads will read the votes.
 
